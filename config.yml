@@ -1,0 +1,12 @@
+psql :
+  host : db2
+  port : 5432
+  username : postgres
+  password : root
+  dbname: bench
+mysql : 
+  host : db
+  port : 3306
+  username : root
+  password : root
+  dbname : bench

@@ -1,0 +1,15 @@
+insert_user :
+  mysql: "INSERT INTO `Member` (id, username) VALUES ({{i}},\"{{faker_name}}\");"
+  psql : "INSERT INTO \"Member\" (id, username) VALUES ({{i}},E'{{faker_name}}');"
+
+count_user :
+  mysql: "SELECT count(*) FROM `Member`;"
+  psql : "SELECT count(*) FROM \"Member\";"
+
+update_user :
+  mysql: "UPDATE `Member` SET username = \"{{faker_name}}\";"
+  psql : "UPDATE \"Member\" SET username = E'{{faker_name}}';"
+
+delete_user :
+  mysql: "DELETE FROM `Member`;"
+  psql : "DELETE FROM \"Member\";"

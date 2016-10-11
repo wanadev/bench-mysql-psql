@@ -1,0 +1,35 @@
+engine:
+    build: ./docker/engine/
+    volumes:
+        - ".:/home/docker:rw"
+        - "./docker/engine/www.conf:/etc/php5/fpm/pool.d/www.conf:ro"
+        - "./docker/engine/php.ini:/etc/php5/fpm/php.ini:ro"
+    links:
+        - "db:db"
+        - "db2:db2"
+    working_dir: "/home/docker"
+    cpu_shares: 5
+
+db:
+    image: mysql:5.7
+    ports:
+        - "3308:3306"
+    volumes:
+        - "./docker/volumes/db:/var/lib/mysql:rw"
+    environment:
+        - "MYSQL_ROOT_PASSWORD=root"
+        - "MYSQL_USER=bench"
+        - "MYSQL_PASSWORD=bench"
+        - "MYSQL_DATABASE=bench"
+    cpu_shares: 5
+
+db2:
+    image: postgres:9.5
+    ports:
+        - "5433:5432"
+    environment:
+        - POSTGRES_PASSWORD=root
+    volumes:
+        - ".:/home/docker:ro"
+        - "./docker/database/init.sh:/usr/bin/init:ro"
+        - "db:/var/lib/postgresql/data:rw"
