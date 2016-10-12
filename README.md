@@ -16,6 +16,6 @@ Dependencies :
 Running benchmark
 -----------------
 
-First, you must change fixtures database in the path ```fixtures/*.sql```. Now, you can add your SQL queries in the file ```data/data.yml```.
+First, you must change fixtures database in the path ```fixtures/*.sql```. Next, add your SQL queries in the file ```data/data.yml```.
 
-Load fixtures by executing ```load.php``` and run benchmark ```run.php```.
+Now, run benchmark ```run.php```.
