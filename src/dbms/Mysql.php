@@ -10,6 +10,7 @@ class Mysql
 
     public function __construct($is_pdo = false)
     {
+    	$this->is_pdo = $is_pdo;
         $config = Yaml::parse(file_get_contents('config.yml'));
         $this->config = $config['mysql'];
         $this->connect($is_pdo);
@@ -17,9 +18,9 @@ class Mysql
 
     public function connect($is_pdo = false)
     {
-        if ($is_pdo) {
+        if ($this->is_pdo) {
             $dsn = "mysql:dbname=".$this->config['dbname'].";host=".$this->config['host'];
-            $this->pdomysql = new PDO($dsn, $this->config['username'], $this->config['password']);
+            $this->mysql = new PDO($dsn, $this->config['username'], $this->config['password']);
         } else {
             $this->mysqli = new  mysqli($this->config['host'], $this->config['username'], $this->config['password'], $this->config['dbname'], $this->config['port']);
             $this->mysqli->select_db($this->config['dbname']) or die('Error selecting MySQL database');
@@ -32,10 +33,20 @@ class Mysql
         $this->query("CREATE DATABASE ".$this->config['dbname']);
     }
 
+    public function close()
+    {
+    	if ($this->is_pdo) {
+    		$this->mysql = null;
+    	}
+    	else {
+        	$this->mysqli->close();
+        }
+    }
+
     public function query($sql)
     {
-        if ($this->pdomysql) {
-            $this->pdomysql->query($sql) or die('PDOMYSQL: '.$sql.' | ERROR: '.print_r($this->pdomysql->errorInfo(), true));
+        if ($this->is_pdo) {
+            $this->mysql->query($sql) or die('PDOMYSQL: '.$sql.' | ERROR: '.print_r($this->mysql->errorInfo(), true));
         } else {
             $this->mysqli->query($sql) or die('MYSQL: '.$sql.' | ERROR: '.$this->mysqli->error);
         }
@@ -43,7 +54,12 @@ class Mysql
 
     public function selectDb()
     {
-        $this->mysqli->select_db($this->config['dbname']) or die('Error selecting MySQL database: ' . mysql_error());
+    	if ($this->is_pdo) {
+    		$this->connect(true);
+    	}
+    	else {
+    		$this->mysqli->select_db($this->config['dbname']) or die('Error selecting MySQL database: ' . mysql_error());
+    	}
     }
 
     public function loadFixtures()

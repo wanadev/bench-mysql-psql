@@ -2,3 +2,4 @@ docker/
 vendor/
 composer.lock
 docker-compose.yml
+config.yml

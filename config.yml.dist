@@ -1,0 +1,12 @@
+psql :
+  host : db
+  port : 5432
+  username : 
+  password : 
+  dbname: 
+mysql : 
+  host : db
+  port : 3306
+  username : 
+  password : 
+  dbname : 

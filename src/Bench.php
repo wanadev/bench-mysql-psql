@@ -13,17 +13,52 @@ class Bench
     private $psql;
     private $mysql;
     private $pks;
+    private $data = array();
+    private $is_pdo = false;
 
     public function __construct($iteration = 1000)
     {
         $this->iteration = $iteration;
-        $this->data = Yaml::parse(file_get_contents('data/data.yml'));
         $this->faker = Faker\Factory::create();
+    }
 
-        $this->mysql = new Mysql(false);
-        $this->pdomysql = new Mysql(true);
-        $this->psql = new Postgresql(false);
-        $this->pdopsql = new Postgresql(true);
+    public function init()
+    {
+        $path = './data';
+        $files = array_diff(scandir($path), array('.', '..'));
+
+        foreach ($files as $file) {
+            if(substr($file, -3) == 'yml') {
+                $this->data = $this->data + Yaml::parse(file_get_contents($path.'/'.$file));
+            }
+        }
+
+        $this->mysql = new Mysql($this->is_pdo);
+        $this->psql = new Postgresql($this->is_pdo);
+    }
+
+    public function run()
+    {
+        $this->runner();
+        $this->is_pdo = true;
+        $this->runner();
+    }
+
+    private function runner()
+    {
+        $this->init();
+        $this->loadFixtures();
+
+        foreach ($this->data as $name => $data) {
+            foreach ($data as $type => $sql) {
+                $this->pks[$name] = 1;
+
+                $data = $this->loadSql($sql, $name);
+                $this->execute($name, $type, $data);
+            }
+        }
+        
+        $this->close();
     }
 
     public function loadFixtures()
@@ -35,6 +70,7 @@ class Bench
 
         $this->psql->loadFixtures();
         $this->mysql->loadFixtures();
+        $this->psql->connect(false);
     }
 
     public function loadSql($sql, $name)
@@ -67,59 +103,42 @@ class Bench
         }
     }
 
-    public function run()
+    private function close()
     {
-        $this->psql->connect(true, false);
-        $this->pdopsql->connect(true, false);
-        
-        foreach ($this->data as $name => $data) {
-            foreach ($data as $type => $sql) {
-                $this->pks[$name] = 1;
-
-                $data = $this->loadSql($sql, $name);
-                $this->execute($name, $type, $data, true);
-
-                $data = $this->loadSql($sql, $name);
-                $this->execute($name, $type, $data);
-            }
-        }
+        $this->psql->close($sql);
+        $this->mysql->close($sql);
     }
 
-    public function execute($name, $type, $data, $is_pdo = false)
+    private function execute($name, $type, $data)
     {
         $memory_start = memory_get_usage();
         $time_start = microtime(true);
 
         foreach ($data as $sql) {
             if ($type === 'psql') {
-                $is_pdo ? $this->pdopsql->query($sql) : $this->psql->query($sql);
+                $this->psql->query($sql);
             } elseif ($type === 'mysql') {
-                $is_pdo ? $this->pdomysql->query($sql) : $this->mysql->query($sql);
+                $this->mysql->query($sql);
             }
         }
         
         $time_end = microtime(true);
         $memory_end = memory_get_usage() ;
 
-        $this->logs[$name][$type][$is_pdo]['memory'] = $memory_end - $memory_start;
-        $this->logs[$name][$type][$is_pdo]['time'] = $time_end - $time_start;
+        $type = $this->is_pdo ? 'pdo_'.$type : $type;
+        $this->logs[$name][$type]['time'] = $time_end - $time_start;
     }
 
     public function getMetrics()
     {
         $msg = '';
         foreach ($this->logs as $key => $l) {
-            $memory = $key." Memory usage :";
-            $time = $key." Execution time :";
+            $time = strtoupper($key)."\n";
 
             foreach ($l as $k => $db_type) {
-                $memory .= ' '.$k.' ('.$db_type[0]['memory'].')';
-                $time .= ' '.$k.' ('.round($db_type[0]['time'], 2).' seconds)';
-                $memory .= ' pdo_'.$k.' ('.$db_type[1]['memory'].')';
-                $time .= ' pdo_'.$k.' ('.round($db_type[1]['time'], 2).' seconds)';
+                $time .= $k." in ".round($db_type['time'], 2)." seconds \n";
             }
 
-            $msg .= $memory."\n";
             $msg .= $time."\n";
         }
 
