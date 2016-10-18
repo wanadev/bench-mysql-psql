@@ -1,4 +1,4 @@
-docker/
+docker/volumes
 vendor/
 composer.lock
 docker-compose.yml
