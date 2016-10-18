@@ -1,12 +1,12 @@
 psql :
-  host : db
+  host : db2
   port : 5432
-  username : 
-  password : 
-  dbname: 
+  username : postgres
+  password : bench
+  dbname: bench
 mysql : 
   host : db
   port : 3306
-  username : 
-  password : 
-  dbname : 
+  username : bench
+  password : bench
+  dbname : bench

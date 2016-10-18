@@ -47,6 +47,7 @@ class Postgresql
     	}
     	else {
         	pg_close($this->psql);
+        	$this->psql = null;
         }
     }
 

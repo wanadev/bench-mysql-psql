@@ -40,6 +40,7 @@ class Mysql
     	}
     	else {
         	$this->mysqli->close();
+        	$this->mysqli = null;
         }
     }
 

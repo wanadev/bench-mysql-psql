@@ -1,0 +1,27 @@
+insert_user :
+  mysql: "INSERT INTO `Member` (id, username) VALUES ({{i}},\"{{faker_name}}\");"
+  psql : "INSERT INTO \"Member\" (id, username) VALUES ({{i}},E'{{faker_name}}');"
+
+insert_post :
+  mysql: "INSERT INTO `Post` (id, member_id) VALUES ({{i}},{{related_insert_post}});"
+  psql : "INSERT INTO \"Post\" (id, member_id) VALUES ({{i}},{{related_insert_post}});"
+
+select_user :
+  mysql: "SELECT * FROM `Member` WHERE id = {{rand}};"
+  psql : "SELECT * FROM \"Member\" WHERE id = {{rand}};"
+
+count_user :
+  mysql: "SELECT count(*) FROM `Member`;"
+  psql : "SELECT count(*) FROM \"Member\";"
+
+count_one_user :
+  mysql: "SELECT count(*) FROM `Member` WHERE id = {{rand}};"
+  psql : "SELECT count(*) FROM \"Member\" WHERE id = {{rand}};"
+
+update_user :
+  mysql: "UPDATE `Member` SET username = \"{{faker_name}}\" WHERE id = {{rand}};"
+  psql : "UPDATE \"Member\" SET username = E'{{faker_name}}' WHERE id = {{rand}};"
+
+delete_user :
+  mysql: "DELETE FROM `Post` WHERE id = {{i}};"
+  psql : "DELETE FROM \"Post\" WHERE id = {{i}};"

@@ -14,11 +14,10 @@ class Bench
     private $mysql;
     private $pks;
     private $data = array();
-    private $is_pdo = false;
+    private $is_pdo;
 
-    public function __construct($iteration = 1000)
+    public function __construct()
     {
-        $this->iteration = $iteration;
         $this->faker = Faker\Factory::create();
     }
 
@@ -26,6 +25,7 @@ class Bench
     {
         $path = './data';
         $files = array_diff(scandir($path), array('.', '..'));
+        $this->data = array();
 
         foreach ($files as $file) {
             if(substr($file, -3) == 'yml') {
@@ -37,10 +37,16 @@ class Bench
         $this->psql = new Postgresql($this->is_pdo);
     }
 
-    public function run()
+    public function run($iteration = 1000)
     {
-        $this->runner();
+        echo "RUNNING ".$iteration." iterations \n\n";
+
+        $this->iteration = $iteration;
+
         $this->is_pdo = true;
+        $this->runner();
+        
+        $this->is_pdo = false;
         $this->runner();
     }
 
@@ -48,12 +54,12 @@ class Bench
     {
         $this->init();
         $this->loadFixtures();
-
         foreach ($this->data as $name => $data) {
             foreach ($data as $type => $sql) {
                 $this->pks[$name] = 1;
 
                 $data = $this->loadSql($sql, $name);
+
                 $this->execute($name, $type, $data);
             }
         }
@@ -92,12 +98,21 @@ class Bench
     {
         $value = $matches[1];
         if (preg_match('/faker_/', $value)) {
-            $value = preg_split('/faker_/', $value);
-            return addslashes($this->faker->$value[1]);
-        } else {
+            $value = preg_replace('/faker_/','', $value);
+            return addslashes($this->faker->$value);
+        }
+        else if (preg_match('/related_/', $value)) {
+            $value = preg_replace('/related_/','', $value);
+            $id = $this->pks[$value];
+            return $id-$i;
+        }
+        else {
             switch ($value) {
                 case 'i':
                     return $i;
+                    break;
+                case 'rand':
+                    return rand(0,$this->iteration);
                     break;
             }
         }
@@ -111,9 +126,7 @@ class Bench
 
     private function execute($name, $type, $data)
     {
-        $memory_start = memory_get_usage();
         $time_start = microtime(true);
-
         foreach ($data as $sql) {
             if ($type === 'psql') {
                 $this->psql->query($sql);
@@ -123,7 +136,6 @@ class Bench
         }
         
         $time_end = microtime(true);
-        $memory_end = memory_get_usage() ;
 
         $type = $this->is_pdo ? 'pdo_'.$type : $type;
         $this->logs[$name][$type]['time'] = $time_end - $time_start;

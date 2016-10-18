@@ -28,7 +28,7 @@ db2:
     ports:
         - "5433:5432"
     environment:
-        - POSTGRES_PASSWORD=root
+        - POSTGRES_PASSWORD=bench
     volumes:
         - ".:/home/docker:ro"
         - "./docker/database/init.sh:/usr/bin/init:ro"
