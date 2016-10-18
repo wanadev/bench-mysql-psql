@@ -4,7 +4,7 @@ Simple PHP Benchmark for Mysql and PostgreSQL
 Installation
 -----------------
 
-For easy use, please run the docker container with docker-compose configuration provided.
+For easy use, please run the docker container with docker-compose configuration provided and install PHP dependencies with composer.
 
 Dependencies :
 * PostgreSQL 9.x
